@@ -1,0 +1,70 @@
+START
+
+Inisialisasi:
+    - Buka koneksi ke SQLite database
+    - Inisialisasi libpcap untuk menangkap semua paket masuk dari interface jaringan (misal: eth0)
+    - Buat struktur data untuk melacak jumlah request per IP (misalnya hash table / map)
+
+Loop utama (berjalan selamanya):
+    Tangkap paket masuk
+
+    Ambil informasi dari paket:
+        - IP sumber (source IP)
+        - Protokol (TCP, UDP, ICMP)
+        - Jika TCP: ambil juga port tujuan
+
+    Jika:
+        - TCP dan port tujuan == 80
+        - atau protokol == UDP
+        - atau protokol == ICMP
+    Maka:
+        - Tambahkan jumlah hit IP tersebut dalam hash map
+        - Cek apakah jumlah hit > ambang batas (misal: 100 dalam 10 detik)
+
+        Jika melebihi threshold:
+            - Simpan log ke database SQLite: (IP, protokol, timestamp)
+            - Jalankan perintah `iptables` untuk memblokir IP tersebut
+            - Cetak log ke terminal atau file log sistem
+
+        Jika belum melebihi:
+            - Lanjutkan monitoring
+
+    Tunggu sebentar (opsional, untuk mengurangi load CPU)
+
+SELESAI
+
+
+START
+
+Initialization:
+    - Open connection to SQLite database
+    - Initialize libpcap to capture all incoming packets from the network interface (e.g., eth0)
+    - Create a data structure (e.g., hash map) to track the request count per source IP
+
+Main Loop (runs continuously):
+    Capture incoming packet
+
+    Extract packet information:
+        - Source IP address
+        - Protocol (TCP, UDP, ICMP)
+        - If TCP: also extract destination port
+
+    IF:
+        - Protocol is TCP AND destination port is 80
+        - OR protocol is UDP
+        - OR protocol is ICMP
+    THEN:
+        - Increment hit count for the source IP in hash map
+        - Check if the hit count exceeds the predefined threshold (e.g., 100 requests in 10 seconds)
+
+        IF threshold is exceeded:
+            - Insert log into SQLite database: (IP address, protocol, timestamp)
+            - Execute `iptables` command to block the attacking IP
+            - Print message to system log or terminal
+
+        ELSE:
+            - Continue monitoring
+
+    Optionally wait for a short delay (to reduce CPU load)
+
+END

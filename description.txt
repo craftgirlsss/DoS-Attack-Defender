@@ -1,0 +1,28 @@
+Deskripsi Proses Kerja Sistem Deteksi dan Mitigasi Serangan DoS
+1. Program dijalankan secara otomatis saat server VPS dinyalakan. Program ini berjalan di latar belakang sebagai daemon, artinya ia terus bekerja tanpa perlu diawasi langsung oleh pengguna.
+2. Program langsung memulai pemantauan jaringan. Ia akan mengawasi semua paket data yang masuk ke server, khususnya pada tiga jenis protokol:
+   a. TCP, terutama yang mengarah ke port 80 (umumnya digunakan untuk layanan web/HTTP)
+   b. UDP
+   c. ICMP (digunakan dalam ping dan traceroute)
+3. Setiap kali ada paket data masuk, program akan mencatat dari alamat IP mana paket tersebut berasal, serta jenis protokol yang digunakan.
+4. Program akan menghitung jumlah paket yang datang dari setiap IP dalam kurun waktu tertentu (misalnya 10 detik). Ini dilakukan untuk mengetahui apakah sebuah IP mengirim terlalu banyak paket dalam waktu singkat.
+5. Jika ada sebuah IP yang mengirim terlalu banyak paket secara terus-menerus, maka IP tersebut dianggap mencurigakan dan kemungkinan merupakan sumber serangan DoS.
+6. Ketika IP mencurigakan terdeteksi:
+   a. Program akan mencatat informasi IP, waktu, dan jenis protokol ke dalam sebuah database lokal (SQLite).
+   b. Lalu program akan secara otomatis memblokir IP tersebut menggunakan iptables, agar tidak bisa lagi mengakses server.
+7. Setelah itu, program kembali ke mode pemantauan dan terus mengulangi proses yang sama, memastikan server tetap aman secara real-time.
+
+
+
+1. The program is automatically launched when the VPS server starts. It runs in the background as a daemon, meaning it operates continuously without needing to be manually monitored.
+2. Once running, the program begins to monitor all incoming network traffic, specifically focusing on three types of protocols:
+    a. TCP, especially traffic directed to port 80 (commonly used for websites/HTTP)
+    b. UDP
+    c. ICMP (used in ping and traceroute)
+3. Every time a packet is received, the program records the source IP address and the type of protocol used.
+4. The program keeps track of the number of packets coming from each IP within a certain period of time (e.g., 10 seconds). This helps detect whether an IP is sending too many requests in a short span.
+5. If an IP is found to be sending excessive requests repeatedly, it is considered suspicious and possibly a source of a DoS attack.
+6. When a suspicious IP is detected:
+    a. The program will log the IP address, time, and protocol type into a local database (SQLite).
+    b. It will then automatically block the IP address using the iptables firewall so that it can no longer access the server.
+7. After taking action, the program resumes monitoring and repeats the same steps continuously, ensuring the server stays safe in real-time.
