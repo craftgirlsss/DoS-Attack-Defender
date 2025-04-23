@@ -1,0 +1,241 @@
+    1  sudo cat .litespeed_password
+    2  ls
+    3  pwd
+    4  sudo cat /root/.litespeed_password
+    5  sudo apt install nmap
+    6  nmap localhost
+    7  ls
+    8  git clone https://github.com/craftgirlsss/DDoS-Defender
+    9  cd DDoS-Defender/
+   10  ls
+   11  gcc main.c -o defender_ddos
+   12  ls
+   13  sudo ./defender_ddos 
+   14  nano main.c 
+   15  cat main.c 
+   16  gcc main.c -o defender_ddos
+   17  sudo ./defender_ddos 
+   18  nmap localhost
+   19  nano main.c 
+   20  gcc main.c -o defender_ddos
+   21  sudo ./defender_ddos 
+   22  nano main.c 
+   23  gcc main.c -o defender_ddos
+   24  sudo ./defender_ddos 
+   25  clear
+   26  ls
+   27  sudo apt install libpcap-dev
+   28  ls
+   29  nano defender_libpcap.c
+   30  ls
+   31  cat defender_libpcap.c
+   32  clear
+   33  ls
+   34  gcc defender_libpcap.c -lpcap -o dos_defender_pcap
+   35  ls
+   36  sudo nohup ./dos_defender_pcap &
+   37  ps
+   38  ls
+   39  cat nohup.out 
+   40  sudo cat nohup.out 
+   41  sudo nohup ./dos_defender_pcap > defender.log 2>&1 &
+   42  ps aux
+   43  ps aux | grep dos_defender_pcap
+   44  tail -f defender.log
+   45  ps aux | grep dos_defender_pcap
+   46  clerar
+   47  clear
+   48  ls
+   49  cat defender.log
+   50  cat defender_libpcap.c 
+   51  exit
+   52  pas aux | grep dos_defender_pcap
+   53  ps aux | grep dos_defender_pcap
+   54  ls
+   55  DDoS-Defender/
+   56  ls
+   57  cd DDoS-Defender/
+   58  ls
+   59  cat defender_libpcap.c 
+   60  clear
+   61  ls
+   62  cat nohup.out 
+   63  sudo cat nohup.out 
+   64  cat defender.log 
+   65  exit
+   66  ps aux | grep dos_defender_pcap
+   67  exit
+   68  ls
+   69  DDoS-Defender/
+   70  ls
+   71  cd DDoS-Defender/
+   72  ls
+   73  cat defender_libpcap.c 
+   74  ps aux | grep dos_defender_pcap
+   75  history
+   76  exit
+   77  systemctl status mariadb
+   78  iptables
+   79  iptables --help
+   80  iptables --list
+   81  sudo iptables --list
+   82  nmap localhost
+   83  sudo iptables -A -p tcp --dport 3306 -j ACCEPT
+   84  sudo iptables -A INPUT -p tcp --dport 3306 -j ACCEPT
+   85  sudo netfilter-presistent save
+   86  sudo iptables -L -n --line-numbers
+   87  cd /etc
+   88  ls
+   89  cd mysql
+   90  ls
+   91  cd mariadb.conf.d/
+   92  ls
+   93  cat 50-mysqld_safe.cnf 
+   94  ..
+   95  ps aux
+   96  ps aux | grep ddos
+   97  exit
+   98  cd /etc/systemd/system
+   99  ls
+  100  exit
+  101  ssh localhost
+  102  sudo apt install nmap
+  103  nmap localhost
+  104  ls
+  105  cd .
+  106  cd /
+  107  ls
+  108  ps aux
+  109  history | grep ps
+  110  ps aux | grep dos_defender_pcap
+  111  ls
+  112  cd
+  113  ls
+  114  cd DDoS-Defender/
+  115  ls
+  116  cat defender.log 
+  117  ls
+  118  exit
+  119  history
+  120  ps aux | grep dos_defender_pcap
+  121  exit
+  122  history
+  123  ps aux | grep dos_defender_pcap
+  124  exit
+  125  npm
+  126  sudo apt install npm
+  127  history
+  128  ps aux | grep dos_defender_pcap
+  129  npm
+  130  ls
+  131  which nginx
+  132  ls
+  133  mkdir Github
+  134  cd Github
+  135  git clone https://github.com/craftgirlsss/nextdev-welcome-web
+  136  ls
+  137  cd nextdev-welcome-web/
+  138  npm run build
+  139  npm install
+  140  npm run build
+  141  npm audit fix
+  142  npm fund
+  143  npm audit fix
+  144  sudo apt update
+  145  sudo apt upgrade -y
+  146  npm install
+  147  sudo apt install nodejs
+  148  sudo apt upgrade nodejs
+  149  node --v
+  150  node --version
+  151  sudo npm install n -g
+  152  sudo npm install n stable
+  153  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.3/install.sh | bash
+  154  exit
+  155  nvm install
+  156  nvm install node
+  157  node --version
+  158  ls
+  159  Github/
+  160  cd Github/
+  161  ls
+  162  cd nextdev-welcome-web/
+  163  npm install
+  164  npm run build
+  165  ls
+  166  cd dist
+  167  ls
+  168  cd ..
+  169  ls
+  170  pwd
+  171  cp -r ./dist /home/nextjiesdev/Github/
+  172  cd ..
+  173  ls
+  174  cd dist
+  175  ls
+  176  scp
+  177  exit
+  178  historu
+  179  history
+  180  ps aux | grep dos_defender_pcap
+  181  ls
+  182  cd Github/
+  183  ls
+  184  https://github.com/craftgirlsss/DoS-Attack-Defender
+  185  git clone https://github.com/craftgirlsss/DoS-Attack-Defender
+  186  ls
+  187  cd DoS-Attack-Defender/
+  188  ls
+  189  gcc -o dosd dosd.c -lpcap -lsqlite3
+  190  sudo apt install libpcap-dev sqlite3 libsqlite3-dev build-essential
+  191  gcc -o dosd dosd.c -lpcap -lsqlite3
+  192  ls
+  193  sudo mv dosd /usr/local/bin/
+  194  ls
+  195  ls /usr/local/bin/
+  196  cd /etc/systemd/system/
+  197  ls
+  198  sudo nano dosd.service
+  199  cat dosd.service 
+  200  sudo systemctl daemon-reexec
+  201  sudo systemctl enable --now dosd
+  202  sqlite3 /var/log/dos_attacks.db 
+  203  ps
+  204  exit
+  205  ps aux
+  206  ps aux | grep dos_defender
+  207  ps aux | grep dosd
+  208  pidof dosd
+  209  cd /usr/local/bin/
+  210  ls
+  211  ./dosd
+  212  sudo ./dosd
+  213  ps aux | grep dosd
+  214  sudo systemctl status dosd
+  215  journalctl -u dosd.service -f
+  216  ls
+  217  cd
+  218  ls
+  219  sudo iptables -L -n
+  220  sudo systemctl status dosd
+  221  sudo reboot
+  222  history
+  223  ps aux | grep dos_defender_pcap
+  224  kill 1603
+  225  kill 6480
+  226  ps au
+  227  ps aux
+  228  sudo systemctl status dosd
+  229  pidof dos_defender_pcap
+  230  sudo systemctl status dos_defender_pcap.service
+  231  ps aux | grep dos_defender_pcap
+  232  sudo kill 1688
+  233  ls
+  234  cd DDoS-Defender/
+  235  ls
+  236  cat defender.log 
+  237  sudo pkill dos_defender_pcap
+  238  ps aux | grep dos_defender_pcap
+  239  ls
+  240  history
+  241  history > history_command.txt
