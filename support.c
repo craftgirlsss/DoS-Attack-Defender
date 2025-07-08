@@ -17,8 +17,8 @@
 #include <sqlite3.h>
 #include <time.h>
 #include <sys/types.h> // Added for pid_t
-#include <sys/wait.h> // Added for waitpid
-#include <signal.h> // Added for signal handling
+#include <sys/wait.h>  // Added for waitpid
+#include <signal.h>    // Added for signal handling
 
 // ==============================================================================
 // KONFIGURASI PENTING - SESUAIKAN DENGAN KEBUTUHAN ANDA!
@@ -30,12 +30,13 @@
 
 // TIME_WINDOW: Jendela waktu (dalam detik) untuk menghitung paket.
 // Contoh: Dalam 5 detik, jika ada lebih dari THRESHOLD paket, blokir.
-#define TIME_WINDOW 3 // seconds
+#define TIME_WINDOW 5 // seconds
 
 // INTERFACE: Interface jaringan yang akan dimonitor.
 // Pastikan ini sesuai dengan interface yang terhubung ke internet/jaringan Anda.
 // Contoh: "eth0", "ens33", "enp0s3", "wlan0".
 // Untuk menemukan interface yang benar, gunakan perintah 'ip a' atau 'ifconfig'.
+// Biarkan kosong "" jika ingin secara otomatis mencoba menemukan interface pertama.
 #define INTERFACE "eth0" // network interface
 
 // DB_PATH: Lokasi file database SQLite.
@@ -159,22 +160,14 @@ void analyze_packet(const struct ip *ip_header) {
     // Periksa jenis protokol dan port/tipe yang relevan
     if (ip_header->ip_p == IPPROTO_TCP) {
         const struct tcphdr *tcp = (struct tcphdr *)((u_char*)ip_header + (ip_header->ip_hl * 4));
-        // Bisa juga memonitor SYN_FLOOD dengan memeriksa flag SYN
-        // if (tcp->th_flags & TH_SYN && !(tcp->th_flags & TH_ACK)) {
-        //     protocol_name = "TCP_SYN";
-        //     suspicious = 1;
-        // }
-        // Untuk DoS attack umum, port 80 (HTTP) sering jadi target
         if (ntohs(tcp->th_dport) == 80) { // Monitor trafik ke port 80 (HTTP)
             protocol_name = "TCP_HTTP";
             suspicious = 1;
         }
     } else if (ip_header->ip_p == IPPROTO_UDP) {
-        // UDP flood sering menargetkan port tertentu, tapi bisa juga port acak
         protocol_name = "UDP";
         suspicious = 1; // Semua UDP dianggap suspicious untuk deteksi flood
     } else if (ip_header->ip_p == IPPROTO_ICMP) {
-        // ICMP flood (ping flood)
         protocol_name = "ICMP";
         suspicious = 1;
     }
@@ -228,7 +221,7 @@ void packet_handler(
     if (header->len < 14 + sizeof(struct ip)) {
         return;
     }
-    const struct ip *ip_header = (struct ip *)(packet + 14); // Ethernet header size is 14 bytes
+    const struct ip *ip_header = (const struct ip *)(packet + 14); // Ethernet header size is 14 bytes
     analyze_packet(ip_header);
 }
 
@@ -277,40 +270,48 @@ int main() {
     // Close all open file descriptors
     // This is important to detach from the terminal and prevent issues.
     close(STDIN_FILENO);
-    close(STDOUT_FILENO);
-    close(STDERR_FILENO);
+    // Untuk debugging awal, Anda bisa tidak menutup STDOUT_FILENO dan STDERR_FILENO
+    // atau mengarahkannya ke file log. Setelah yakin, bisa ditutup.
+    // close(STDOUT_FILENO);
+    // close(STDERR_FILENO);
 
     // Register signal handler for SIGINT
     signal(SIGINT, sig_handler);
 
     char errbuf[PCAP_ERRBUF_SIZE];
     pcap_t *handle;
+    char target_interface[PCAP_ERRBUF_SIZE];
+    pcap_if_t *all_devs, *dev;
 
     // Deteksi interface yang aktif
-    char *dev;
-    char default_interface[PCAP_ERRBUF_SIZE];
-
     if (strcmp(INTERFACE, "") == 0) { // Jika INTERFACE kosong, coba cari default
-        dev = pcap_lookupdev(errbuf);
-        if (dev == NULL) {
-            fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
+        if (pcap_findalldevs(&all_devs, errbuf) == -1) {
+            fprintf(stderr, "Error in pcap_findalldevs: %s\n", errbuf);
             return 1;
         }
-        strncpy(default_interface, dev, PCAP_ERRBUF_SIZE - 1);
-        default_interface[PCAP_ERRBUF_SIZE - 1] = '\0';
-        printf("Using default interface: %s\n", default_interface);
+
+        // Ambil perangkat pertama yang ditemukan
+        if (all_devs != NULL) {
+            strncpy(target_interface, all_devs->name, PCAP_ERRBUF_SIZE - 1);
+            target_interface[PCAP_ERRBUF_SIZE - 1] = '\0';
+            printf("No specific interface defined. Using first available interface: %s\n", target_interface);
+            pcap_freealldevs(all_devs); // Bebaskan daftar perangkat setelah digunakan
+        } else {
+            fprintf(stderr, "No network devices found.\n");
+            return 1;
+        }
     } else {
-        strncpy(default_interface, INTERFACE, PCAP_ERRBUF_SIZE - 1);
-        default_interface[PCAP_ERRBUF_SIZE - 1] = '\0';
-        printf("Using configured interface: %s\n", default_interface);
+        strncpy(target_interface, INTERFACE, PCAP_ERRBUF_SIZE - 1);
+        target_interface[PCAP_ERRBUF_SIZE - 1] = '\0';
+        printf("Using configured interface: %s\n", target_interface);
     }
 
     // Buka device untuk menangkap paket
     // Promiscuous mode (1) agar bisa melihat semua paket, bukan hanya yang ditujukan ke kita.
     // Timeout 1000ms.
-    handle = pcap_open_live(default_interface, BUFSIZ, 1, 1000, errbuf);
+    handle = pcap_open_live(target_interface, BUFSIZ, 1, 1000, errbuf);
     if (!handle) {
-        fprintf(stderr, "Could not open device %s: %s\n", default_interface, errbuf);
+        fprintf(stderr, "Could not open device %s: %s\n", target_interface, errbuf);
         return 1;
     }
 
@@ -322,7 +323,7 @@ int main() {
     }
     create_db_table(); // Panggil fungsi untuk memastikan tabel ada
 
-    printf("DoS Detection Daemon running. Monitoring %s for DoS attacks...\n", default_interface);
+    printf("DoS Detection Daemon running. Monitoring %s for DoS attacks...\n", target_interface);
     printf("Threshold: %d packets in %d seconds.\n", THRESHOLD, TIME_WINDOW);
     printf("Attack logs will be stored in: %s\n", DB_PATH);
 
