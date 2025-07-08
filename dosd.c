@@ -66,81 +66,70 @@
  }
  
  void analyze_packet(const struct ip *ip_header) {
-     char src_ip[INET_ADDRSTRLEN];
-     inet_ntop(AF_INET, &(ip_header->ip_src), src_ip, INET_ADDRSTRLEN);
- 
-     const char *protocol = NULL;
-     int suspicious = 0;
- 
-     if (ip_header->ip_p == IPPROTO_TCP) {
-         const struct tcphdr *tcp = (struct tcphdr *)((u_char*)ip_header + (ip_header->ip_hl * 4));
-         if (ntohs(tcp->th_dport) == 80) {
-             protocol = "TCP";
+    char src_ip[INET_ADDRSTRLEN];
+    inet_ntop(AF_INET, &(ip_header->ip_src), src_ip, INET_ADDRSTRLEN);
+    const char *protocol = NULL;
+    int suspicious = 0;
+    if (ip_header->ip_p == IPPROTO_TCP) {
+        const struct tcphdr *tcp = (struct tcphdr *)((u_char*)ip_header + (ip_header->ip_hl * 4));
+        if (ntohs(tcp->th_dport) == 80) {
+            protocol = "TCP";
              suspicious = 1;
-         }
-     } else if (ip_header->ip_p == IPPROTO_UDP) {
-         protocol = "UDP";
-         suspicious = 1;
-     } else if (ip_header->ip_p == IPPROTO_ICMP) {
-         protocol = "ICMP";
-         suspicious = 1;
-     }
- 
+        }
+    } else if (ip_header->ip_p == IPPROTO_UDP) {
+    protocol = "UDP";
+    suspicious = 1;
+    } else if (ip_header->ip_p == IPPROTO_ICMP) {
+    protocol = "ICMP";
+    suspicious = 1;
+    }
      if (!suspicious || !protocol) return;
- 
      IPLog *log = find_or_create_log(src_ip);
      if (!log || log->blocked) return;
- 
      time_t now = time(NULL);
- 
-     // Shift timestamps to keep only recent
      int new_count = 0;
      for (int i = 0; i < log->count; i++) {
-         if (now - log->timestamps[i] < TIME_WINDOW) {
-             log->timestamps[new_count++] = log->timestamps[i];
-         }
-     }
-     log->timestamps[new_count++] = now;
-     log->count = new_count;
- 
-     if (log->count > THRESHOLD) {
-         block_ip(src_ip);
-         log_to_sqlite(src_ip, protocol);
-         log->blocked = 1;
-     }
+        if (now - log->timestamps[i] < TIME_WINDOW) log->timestamps[new_count++] = log->timestamps[i];
+    }
+    log->timestamps[new_count++] = now;
+    log->count = new_count;
+    if (log->count > THRESHOLD) {
+        block_ip(src_ip);
+        log_to_sqlite(src_ip, protocol);
+        log->blocked = 1;
+    }
  }
  
- void packet_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *packet) {
-     const struct ip *ip_header = (struct ip *)(packet + 14); // skip ethernet
-     analyze_packet(ip_header);
- }
+void packet_handler(
+    u_char *args, 
+    const struct pcap_pkthdr *header, 
+    const u_char *packet
+) {
+    const struct ip *ip_header = (struct ip *)(packet + 14);
+    analyze_packet(ip_header);
+}
  
  int main() {
-     char errbuf[PCAP_ERRBUF_SIZE];
-     pcap_t *handle = pcap_open_live(INTERFACE, BUFSIZ, 1, 1000, errbuf);
-     if (!handle) {
-         fprintf(stderr, "Could not open device: %s\n", errbuf);
-         return 1;
-     }
- 
-     if (sqlite3_open(DB_PATH, &db)) {
-         fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
-         return 1;
-     }
- 
-     const char *sql_create = "CREATE TABLE IF NOT EXISTS attacks ("
-                              "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                              "ip TEXT,"
-                              "protocol TEXT,"
-                              "timestamp TEXT);";
-     char *err_msg = 0;
-     sqlite3_exec(db, sql_create, 0, 0, &err_msg);
- 
-     pcap_loop(handle, 0, packet_handler, NULL);
- 
-     sqlite3_close(db);
-     pcap_close(handle);
- 
-     return 0;
+    char errbuf[PCAP_ERRBUF_SIZE];
+    pcap_t *handle = pcap_open_live(INTERFACE, BUFSIZ, 1, 1000, errbuf);
+    if (!handle) {
+        fprintf(stderr, "Could not open device: %s\n", errbuf);
+        return 1;
+    }
+    if (sqlite3_open(DB_PATH, &db)) {
+        fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
+        return 1;
+    }
+    const char *sql_create = "CREATE TABLE IF NOT EXISTS attacks ("
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                            "ip TEXT,"
+                            "protocol TEXT,"
+                            "timestamp TEXT);";
+    char *err_msg = 0;
+    sqlite3_exec(db, sql_create, 0, 0, &err_msg);
+    pcap_loop(handle, 0, packet_handler, NULL);
+    sqlite3_close(db);
+    pcap_close(handle);
+    return 0;
  }
  
